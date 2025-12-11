@@ -1,0 +1,83 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model users {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  branding     branding_profiles[]
+  properties   properties[]
+}
+
+model branding_profiles {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  name           String
+  logoUrl        String?  @map("logo_url")
+  primaryColor   String?  @map("primary_color")
+  headerTitle    String?  @map("header_title")
+  headerSubtitle String?  @map("header_subtitle")
+  agentName      String?  @map("agent_name")
+  agentRole      String?  @map("agent_role")
+  agentPhone     String?  @map("agent_phone")
+  agentWhatsapp  String?  @map("agent_whatsapp")
+  agentEmail     String?  @map("agent_email")
+  agentWebsite   String?  @map("agent_website")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  user           users    @relation(fields: [userId], references: [id])
+  properties     properties[]
+}
+
+model properties {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  brandingProfileId String?   @map("branding_profile_id")
+  sourceUrl         String    @map("source_url")
+  title             String
+  description       String
+  price             Float?
+  currency          String?
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  bedrooms          Int?
+  bathrooms         Int?
+  parking           Int?
+  builtArea         Float?    @map("built_area")
+  landArea          Float?    @map("land_area")
+  extras            Json?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  branding          branding_profiles? @relation(fields: [brandingProfileId], references: [id])
+  images            property_images[]
+  links             public_links[]
+  user              users      @relation(fields: [userId], references: [id])
+}
+
+model property_images {
+  id         String   @id @default(uuid())
+  propertyId String   @map("property_id")
+  url        String
+  sortOrder  Int      @map("sort_order")
+  property   properties @relation(fields: [propertyId], references: [id])
+}
+
+model public_links {
+  id         String   @id @default(uuid())
+  propertyId String   @map("property_id")
+  slug       String   @unique
+  token      String?
+  expiresAt  DateTime @map("expires_at")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  property   properties @relation(fields: [propertyId], references: [id])
+}
